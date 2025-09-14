@@ -1,5 +1,7 @@
 # BioProblemSolving Telegram Bot
 
+<!-- USE "source ~/venv/bin/activate" EACH TIME YOU WANT TO WORK WITH TELEGRAM BOT IN RASPBERRY PI 5 -->
+
 This is the first version of a Telegram bot for the **BioProblemSolving** community.  
 It helps users submit biology Olympiad-style problems and questions into the moderation queue before being published in the official channel.
 
