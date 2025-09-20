@@ -1,6 +1,10 @@
 # BioProblemSolving Telegram Bot
 
+<<<<<<< HEAD
 _Warning:_ USE "source ~/venv/bin/activate" each time when executing bot script in environments like RAPSI.
+=======
+_Warning:_ USE "source ~/venv/bin/activate" EACH TIME YOU WANT TO WORK WITH TELEGRAM BOT IN RASPBERRY PI 5 -->
+>>>>>>> 9e83347f5490b566f464b05b344a50d0256954d9
 
 This is the first version of a Telegram bot for the **BioProblemSolving** community.  
 It helps users submit biology Olympiad-style problems and questions into the moderation queue before being published in the official channel.
