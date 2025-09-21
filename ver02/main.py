@@ -109,7 +109,7 @@ def id_handler(message):
 def git_handler(message):
     bot.send_message(
         message.chat.id,
-        "🔗 Репозиторий: github.com/uhbl/bpsg-telegram-bot\n👨‍💻 Разработчик: Абылайхан (github.com/uhbl)",
+        "🔗 Репозиторий: github.com/uhbl/bpsg-telegram-bot\nРазработчик: Абылайхан (github.com/uhbl)",
     )
 
 
@@ -126,7 +126,7 @@ def cancel_handler(message):
 @bot.message_handler(commands=["feedback"])
 def feedback_handler(message):
     user_id = message.chat.id
-    bot.send_message(user_id, "💬 Оставьте ваш отзыв одним сообщением — я перешлю его разработчику.")
+    bot.send_message(user_id, "💬 Оставьте ваш отзыв одним текстовым сообщением — я перешлю его разработчику.")
     user_feedback_data[user_id] = {
         "step": "feedback_called",
         "feedback": None,
@@ -137,7 +137,7 @@ def feedback_handler(message):
 @bot.message_handler(func=lambda m: user_feedback_data.get(m.chat.id, {}).get("step") == "feedback_called")
 def feedback_sender(message):
     user_id = message.chat.id
-    if message.text < 500:
+    if len(message.text) < 500:
         user_feedback_data[user_id]["feedback"] = message.text
         bot.send_message(ids["developer_id"], f"#FEEDBACK\n\n'{user_feedback_data[user_id]['feedback']}' from @{user_feedback_data[user_id]['username']}.",)
         user_feedback_data.pop(user_id)
@@ -171,7 +171,7 @@ def post_command_handler(message):
 
     bot.send_message(
         user_id,
-        "📝 [Шаг 1/7] Текст задачи. Пожалуйста, отправьте формулировку одним сообщением (до 1000 символов). Если текст длиннее — приложите документом.",
+        "📝 [Шаг 1/7] Текст задачи. Пожалуйста, отправьте формулировку одним сообщением (до 900 символов). Если текст длиннее — в этапе медиа, приложите документом.",
     )
 
 
@@ -201,7 +201,7 @@ def handle_text(message):
     else:
         bot.send_message(
             user_id,
-            "⚠️ Текст слишком длинный. Максимальная длина — 1000 символов. Вы можете отправить задачу как документ или изображение.",
+            "⚠️ Текст слишком длинный. Максимальная длина — 900 символов. Вы можете отправить задачу как документ или изображение.",
         )
 
 
@@ -417,7 +417,6 @@ def handle_preview_confirmation(message):
 
     user_id = message.chat.id
     text = message.text.strip().lower()
-
     if text == "yes":
         send_problem(user_id)
         bot.send_message(user_id, "🎉 Готово! Задача отправлена администраторам. Спасибо!", reply_markup=types.ReplyKeyboardRemove())
@@ -439,15 +438,15 @@ def send_problem(user_id: int) -> None:
     if media_type == "photo":
         media = [types.InputMediaPhoto(media=file_id) for file_id in data["media"]]
         media[0].caption = formatted_message
-        bot.send_media_group(ids["test_env_id"], media=media)
+        bot.send_media_group(ids["problems_id"], media=media)
     elif media_type == "document":
         media = [types.InputMediaDocument(media=file_id) for file_id in data["media"]]
         media[-1].caption = formatted_message
-        bot.send_media_group(ids["test_env_id"], media=media)
+        bot.send_media_group(ids["problems_id"], media=media)
     else:
-        bot.send_message(ids["test_env_id"], formatted_message)
+        bot.send_message(ids["problems_id"], formatted_message)
 
-    bot.send_message(ids["test_env_id"], f"ID: {user_id}\n@: @{data['username']} \n")
+    bot.send_message(ids["problems_id"], f"ID: {user_id}\n@: @{data['username']} \n")
     user_data.pop(user_id)
 
 
