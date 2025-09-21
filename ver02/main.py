@@ -1,6 +1,7 @@
 import logging
 import json
 import re
+import os
 
 import telebot as tlb
 from telebot import logger, types
@@ -24,6 +25,7 @@ logger.setLevel(logging.DEBUG)
 # Bot & Runtime State
 # -----------------------------
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 bot = tlb.TeleBot(ids["bot_api"])  # API token from bdtbs.py
 user_data: dict[int, dict] = {}
 user_feedback_data: dict[int, dict] = {}
@@ -96,7 +98,26 @@ def _kb_with_values(values: list[str], *, include_skip: bool = False, per_row: i
 
 @bot.message_handler(commands=["start"])
 def start_handler(message):
-    bot.copy_message(message.chat.id, ids["developer_id"], ids["start_fwd_msg_id"])
+    intro_text = (
+        "Бот отправки задач по олимпиадной (и не только) биологии в канал @synapse_bpsg\n\n"
+        "Добро пожаловать!\n"
+        "Этот бот помогает участникам отправлять олимпиадные (и не только) задачи/вопросы "
+        "по биологии администраторам в аккуратном и структурированном виде.\n\n"
+        "Команды:\n"
+        "/post — начать отправку задачи\n"
+        "/cancel — отменить текущую отправку\n"
+        "/feedback — оставить отзыв разработчику\n"
+        "/git — репозиторий проекта"
+    )
+    bot.send_message(message.chat.id, intro_text)
+
+    pdf_path = os.path.join(BASE_DIR, "guide.pdf")
+    try:
+        with open(pdf_path, "rb") as doc:
+            bot.send_document(message.chat.id, doc, caption="Руководство (PDF)")
+    except Exception as e:
+        bot.send_message(message.chat.id, f"Не удалось прикрепить PDF: {e}")
+
 
 
 @bot.message_handler(commands=["id"])
@@ -118,9 +139,25 @@ def cancel_handler(message):
     user_id = message.chat.id
     if user_id in user_data:
         user_data.pop(user_id)
-        bot.send_message(user_id, "🛑 Отправка отменена. Вы можете начать заново с командой /post.")
+        bot.send_message(
+            user_id,
+            "🛑 Отправка отменена. Вы можете начать заново с командой /post.",
+            reply_markup=types.ReplyKeyboardRemove()
+        )
+    if user_id in user_feedback_data:
+        user_feedback_data.pop(user_id)
+        bot.send_message(
+            user_id,
+            "Отправка фидбека отменена.",
+            reply_markup=types.ReplyKeyboardRemove()
+        )
     else:
-        bot.send_message(user_id, "Отменять нечего — активной отправки нет.")
+        bot.send_message(
+            user_id,
+            "Отменять нечего — активной отправки нет.",
+            reply_markup=types.ReplyKeyboardRemove()
+        )
+
 
 
 @bot.message_handler(commands=["feedback"])
@@ -153,6 +190,13 @@ def post_command_handler(message):
 
     user_id = message.chat.id
     user_username = message.from_user.username
+
+    if user_id in [user_data, user_feedback_data]:
+        bot.send_message(
+            user_id,
+            "⚠️ У вас уже есть активная отправка. Чтобы начать заново, сначала используйте /cancel."
+        )
+        return
 
     user_data[user_id] = {
         "step": "text",
@@ -341,7 +385,7 @@ def handle_year(message):
     if bool_has_digit(clear_year):
         ymin = years.get("lower_bound", years.get("min", 1990))
         ymax = years.get("upper_bound", years.get("max", 2027))
-        if clear_year and clear_year.isdigit() and ymin <= int(yr) <= ymax:
+        if clear_year and clear_year.isdigit() and ymin <= int(clean_year) <= ymax:
             user_data[user_id]["year"] = clear_year
             user_data[user_id]["step"] = "topic"
             kb = _kb_with_values(list(topics.values()), include_skip=False, per_row=3)
