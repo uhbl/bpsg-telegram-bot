@@ -1,3 +1,5 @@
+(AI-generated readme, i was very lazy to do it myself)
+
 # BPSG Telegram Bot
 
 A Telegram bot that collects biology olympiad problems from users in a **guided, clean, and consistent** flow and forwards them to admins for review.
